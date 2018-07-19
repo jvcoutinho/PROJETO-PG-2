@@ -1,0 +1,45 @@
+/* Para ser colocado logo após o start */
+
+Button buttonClear = new Button ("CLEAR");
+
+root.getChildren().add(buttonClear);
+
+buttonClear.setOnAction(new EventHandler<ActionEvent>() {
+	@Override public void handle(ActionEvent e) {
+			try {
+				
+				BorderPane root = new BorderPane();
+				Scene scene = new Scene(root);
+				definePrimaryStage(scene, primaryStage);
+
+				final Canvas canvas = new Canvas(screenWidth, screenHeight);
+				GraphicsContext context = canvas.getGraphicsContext2D();
+
+				/* Carregamento dos arquivos e projeção para coordenadas de vista. */
+				Loader loader = new Loader("../iluminacao.txt", "../camera.cfg", "../tui.byu");
+				Camera camera = loader.loadCamera();
+				Illumination illumination = loader.loadScene(camera.worldToView(), camera.getCoordinates());
+				SceneObject object = loader.loadObject(camera.worldToView(), camera.getCoordinates());
+				
+				/* Cálculo das normais e normalização. */
+				object.normalize();
+
+				/* Inicialização do Z-Buffer. */
+				double[][] zBuffer = initializeZBuffer();
+
+				/* Projeção para a tela, rasterização e iluminação. */
+				object.finalSteps(camera, illumination, screenWidth, screenHeight, context, zBuffer);
+
+				root.getChildren().add(canvas);
+				primaryStage.show();
+
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+		}
+	}
+});
+
+
